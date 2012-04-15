@@ -1,5 +1,5 @@
 /*----------------------------------------------------------
-  Rubellite  ver 0.04  2012.04.15
+  Rubellite  ver 0.041  2012.04.15
     Rubellite is not implementation of Ruby language.
     It provides coding such as Ruby restrictively.
       License    : MIT
@@ -137,7 +137,7 @@ var enumerableExMethods = {
 		});
 		return retAry;
 	},
-	_map: function(){ return _collect.apply( this, arguments ); },
+	_map: function(){ return this._collect.apply( this, arguments ); },
 	_each_with_index: function( yield ){
 		if ( typeof( yield ) == "function" ) {
 			var idx = 0;
