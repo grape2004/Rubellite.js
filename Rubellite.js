@@ -1,5 +1,5 @@
 /*----------------------------------------------------------
-  Rubellite  ver 0.053  2012.06.16
+  Rubellite  ver 1.00  2012.06.24
     Rubellite is not implementation of Ruby language.
     It provides coding such as Ruby restrictively.
       License    : MIT
@@ -42,6 +42,7 @@ function $rb( obj ) {
 		}
 		else {
 			wrapObj = $rubellite.createRbObject();
+			wrapObj.default_value = null;
 		}
 	}
 	wrapObj.context = obj;
@@ -61,7 +62,7 @@ function $rb( obj ) {
 		function get_user_agent() {
 			if ( null != rubellite_ua ) { return rubellite_ua; }
 			if (rubellite_user_agent.indexOf('opera') != -1) {
-				rubellite_ua = 'opera'
+				rubellite_ua = 'opera';
 			}
 			else if (rubellite_user_agent.indexOf('msie') != -1) {
 				rubellite_ua = 'ie';
@@ -91,10 +92,7 @@ function $rb( obj ) {
 			obj = $rb( obj );
 			if ( null == obj || typeof( obj ) != "object" ) { return obj }
 			if ( typeof( obj.to_i ) == "undefined" ) {
-				for ( var fnName in objectExMethods ) {
-					obj[fnName] = objectExMethods[fnName];
-				}
-				
+				obj = $rb( obj );
 				if ( is_local() ) {
 					obj.sessionStorage = null;
 					obj.localStorage = null;
@@ -111,7 +109,7 @@ function $rb( obj ) {
 		  Enumerable
 		--------------------------------------*/
 		var enumerableExMethods = {
-			is_all: function(){
+			'is_all': function(){
 				var flag = true;
 				if ( 0 == arguments.length ) {
 					this.each( function( val ) {
@@ -141,7 +139,7 @@ function $rb( obj ) {
 				}
 				return $rb(flag);
 			},
-			is_any: function(){
+			'is_any': function(){
 				var flag = false;
 				if ( 0 == arguments.length ) {
 					this.each( function( val ) {
@@ -171,7 +169,8 @@ function $rb( obj ) {
 				}
 				return $rb(flag);
 			},
-			collect: function( yield ){
+			'is_array': function(){ return $rb(false); },
+			'collect': function( yield ){
 				if ( typeof( yield ) != "function" ) {
 					return this;
 				}
@@ -181,8 +180,8 @@ function $rb( obj ) {
 				});
 				return retAry;
 			},
-			map: function(){ return this.collect.apply( this, arguments ); },
-			each_with_index: function( yield ){
+			'map': function(){ return this.collect.apply( this, arguments ); },
+			'each_with_index': function( yield ){
 				if ( typeof( yield ) == "function" ) {
 					var idx = 0;
 					this.each( function( val ){
@@ -192,7 +191,7 @@ function $rb( obj ) {
 				}
 				return this;
 			},
-			find: function( yield ){
+			'find': function( yield ){
 				if ( typeof( yield ) != "function" ) {
 					return $rb(null);
 				}
@@ -212,8 +211,8 @@ function $rb( obj ) {
 				}
 				return $rb(res);
 			},
-			detect: function(){ return this.find.apply( this, arguments ); },
-			find_all: function( yield ){
+			'detect': function(){ return this.find.apply( this, arguments ); },
+			'find_all': function( yield ){
 				if ( typeof( yield ) != "function" ) {
 					return $rb([]);
 				}
@@ -225,8 +224,8 @@ function $rb( obj ) {
 				});
 				return $rb(retAry);
 			},
-			select: function(){ return this.find_all.apply( this, arguments ); },
-			grep: function( ptn ){
+			'select': function(){ return this.find_all.apply( this, arguments ); },
+			'grep': function( ptn ){
 				var yield = null;
 				if ( 2 == arguments.length ) {
 					if ( typeof( arguments[1] ) == "function" ) {
@@ -279,7 +278,7 @@ function $rb( obj ) {
 				});
 				return $rb(retAry);
 			},
-			inject: function() {
+			'inject': function() {
 				if ( 0 == arguments.length ) {
 					return $rb(null);
 				}
@@ -307,7 +306,7 @@ function $rb( obj ) {
 				});
 				return $rb(result);
 			},
-			is_include: function( obj ){
+			'is_include': function( obj ){
 				obj = $unrb( obj );
 				var ret = false;
 				this.each( function( elm ){
@@ -327,8 +326,8 @@ function $rb( obj ) {
 				});
 				return $rb(ret);
 			},
-			is_member: function(){ return this.is_include.apply( this, arguments ) },
-			max: function(){
+			'is_member': function(){ return this.is_include.apply( this, arguments ) },
+			'max': function(){
 				var yiled = null;
 				if ( 1 == arguments.length ) {
 					if ( typeof( arguments[0] ) == "function" ) {
@@ -365,7 +364,7 @@ function $rb( obj ) {
 				}
 				return $rb(ret);
 			},
-			max_by: function( yiled ){
+			'max_by': function( yiled ){
 				if ( typeof( yiled ) != "function" ) {
 					return $rb(null);
 				}
@@ -386,7 +385,7 @@ function $rb( obj ) {
 				});
 				return $rb(ret);
 			},
-			min: function(){
+			'min': function(){
 				var yiled = null;
 				if ( 1 == arguments.length ) {
 					if ( typeof( arguments[0] ) == "function" ) {
@@ -423,7 +422,7 @@ function $rb( obj ) {
 				}
 				return $rb(ret);
 			},
-			min_by: function( yiled ){
+			'min_by': function( yiled ){
 				if ( typeof( yiled ) != "function" ) {
 					return $rb(null);
 				}
@@ -444,7 +443,7 @@ function $rb( obj ) {
 				});
 				return $rb(ret);
 			},
-			partition: function( yield ){
+			'partition': function( yield ){
 				if ( typeof( yield ) != "function" ) {
 					return $rb([[],[]]);
 				}
@@ -461,7 +460,7 @@ function $rb( obj ) {
 				});
 				return $rb(ret);
 			},
-			reject: function( yield ){
+			'reject': function( yield ){
 				if ( typeof( yield ) != "function" ) {
 					return $rb([]);
 				}
@@ -473,7 +472,7 @@ function $rb( obj ) {
 				});
 				return $rb(retAry);
 			},
-			sort: function(){
+			'sort': function(){
 				var retVal = [];
 				var existFnc = false;
 				var tmpAry = [];
@@ -564,7 +563,7 @@ function $rb( obj ) {
 								case 3: // string
 									var strMax = org.length;
 									if ( strMax > cmp.length ) {
-										strMax = cmp.length
+										strMax = cmp.length;
 									}
 									for ( var k=0;k<strMax;k+=1 ) {
 										evalVal = cmp.charCodeAt(k) - org.charCodeAt(k);
@@ -599,7 +598,7 @@ function $rb( obj ) {
 				}
 				return retVal;
 			},
-			sort_by: function(){
+			'sort_by': function(){
 				var retVal = $rb([]);
 				var tmpAry = $rb([]);
 				var yield = null;
@@ -684,7 +683,7 @@ function $rb( obj ) {
 							case 3: // string
 								var strMax = org.length;
 								if ( strMax > cmp.length ) {
-									strMax = cmp.length
+									strMax = cmp.length;
 								}
 								for ( var k=0;k<strMax;k+=1 ) {
 									evalVal = cmp.charCodeAt(k) - org.charCodeAt(k);
@@ -718,14 +717,14 @@ function $rb( obj ) {
 				}
 				return retVal;
 			},
-			entries: function(){
+			'entries': function(){
 				var retAry = [];
 				this.each( function( elm ){
 					retAry[ retAry.length ] = elm;
 				});
 				return $rb(retAry);
 			},
-			zip: function( ary ){
+			'zip': function( ary ){
 				ary = $unrb( ary );
 				var yield = null;
 				var argAryNum = arguments.length;
@@ -766,9 +765,9 @@ function $rb( obj ) {
 		  Object
 		--------------------------------------*/
 		var objectExMethods = {
-			to_i: function(){ return $rb(0); },
-			to_f: function(){ return $rb(0.0); },
-			to_s: function(){
+			'to_i': function(){ return $rb(0); },
+			'to_f': function(){ return $rb(0.0); },
+			'to_s': function(){
 				if ( null == this.context ) { return $rb("null"); }
 				if ( typeof( this.context ) == "undefined" ) { return $rb("undefined"); }
 				if ( 0 == this.context.length ) { return $rb("{}"); }
@@ -788,9 +787,6 @@ function $rb( obj ) {
 				var retVal = "";
 				var i = 0;
 				for ( var key in this.context ) {
-					if ( typeof( objectExMethods[key] ) != "undefined" ) {
-						continue;
-					}
 					if ( key == "sessionStorage" || key == "localStorage" ) {
 						try {
 							if ( is_local() ) { continue; }
@@ -824,16 +820,13 @@ function $rb( obj ) {
 				}
 				return $rb("{" + retVal + "}");
 			},
-			to_a: function(){
+			'to_a': function(){
 				if ( null == this.context ) { return $rb([null]); }
 				if ( typeof( this.context ) == "undefined" ) { return $rb("undefined"); }
 				if ( 0 == this.context.length ) { return $rb([this.context]); }
 				var retAry = [];
 				var i = 0;
 				for ( var key in this.context ) {
-					if ( typeof( objectExMethods[key] ) != "undefined" ) {
-						continue;
-					}
 					if ( key == "sessionStorage" || key == "localStorage" ) {
 						try {
 							if ( is_local() ) { continue; }
@@ -845,9 +838,8 @@ function $rb( obj ) {
 				}
 				return $rb(retAry);
 			},
-			to_ary: function(){ return $rb(this.to_a.apply( this, arguments )); },
-			is_array: function(){ return $rb(false); },
-			is_eql: function( other ) {
+			'to_ary': function(){ return $rb(this.to_a.apply( this, arguments )); },
+			'is_eql': function( other ) {
 				if ( null == this.context ) {
 					if ( null == other ) {
 						return $rb(true);
@@ -855,9 +847,6 @@ function $rb( obj ) {
 					return $rb(false);
 				}
 				for ( var key in this.context ) {
-					if ( typeof( objectExMethods[key] ) != "undefined" ) {
-						continue;
-					}
 					if ( key == "sessionStorage" || key == "localStorage" ) {
 						try {
 							if ( is_local() ) { continue; }
@@ -870,16 +859,344 @@ function $rb( obj ) {
 					break;
 				}
 				return $rb(true);
+			},
+			'store': function( key, val ){
+				this.context[key] = val;
+				return $rb(val);
+			},
+			'clear': function(){
+				for( key in this.context ){
+					delete this.context[key];
+				}
+				return this;
+			},
+			'clone': function(){
+				var ret = {};
+				for( key in this.context ){
+					ret[key] = this.context[key];
+				}
+				return $rb(ret);
+			},
+			'dup': function(){ return this.clone.apply( this, arguments ); },
+			'default': function( key ){
+				if ( typeof(this.default_value) == "undefined" ) { this.default_value = null; }
+				if ( typeof( this.default_value ) != "function" ) {
+					return $rb(this.default_value);
+				}
+				else {
+					if ( typeof( key ) == "undefined" ) {
+						key = null;
+					}
+					return $rb( this.default_value.apply( this, [key] ) );
+				}
+			},
+			'set_default': function( def ){
+				this.default_value = def;
+				return this;
+			},
+			'default_proc': function(){
+				if ( typeof( this.default_value ) != "function" ) {
+					return $rb( null );
+				}
+				return $rb( this.default_value );
+			},
+			'delete': function( key ){
+				var ret = null;
+				if ( typeof(key) != "undefined" ) {
+					if ( typeof( this.context[key] ) != "undefined" ) {
+						ret = this.context[key];
+						delete this.context[key];
+					}
+				}
+				if ( typeof(arguments[1]) == "function" ) {
+					ret = arguments[1].apply( this, [key] );
+				}
+				return $rb(ret);
+			},
+			'reject': function( fnc ){
+				var $ret = this.clone();
+				if ( typeof(fnc) == "function" ) {
+					for ( elm in $ret.context ) {
+						if ( fnc.apply( this, [elm, $ret.context[elm] ] ) ) {
+							delete $ret.context[elm];
+						}
+					}
+				}
+				return $ret;
+			},
+			'delete_if': function( fnc ){
+				if ( typeof(fnc) == "function" ) {
+					for ( elm in this.context ) {
+						if ( fnc.apply( this, [elm, this.context[elm] ] ) ) {
+							delete this.context[elm];
+						}
+					}
+				}
+				return this;
+			},
+			'reject_f': function( fnc ){
+				var del_flag = false;
+				if ( typeof(fnc) == "function" ) {
+					for ( elm in this.context ) {
+						if ( fnc.apply( this, [elm, this.context[elm] ] ) ) {
+							delete this.context[elm];
+							del_flag = true;
+						}
+					}
+				}
+				if ( !del_flag ) {
+					return $rb(null);
+				}
+				return this;
+			},
+			'each': function( fnc ){
+				if ( typeof(fnc) == "function" ) {
+					for ( elm in this.context ) {
+						fnc.apply( this, [[elm, this.context[elm]]] );
+					}
+				}
+				return this;
+			},
+			'each_pair': function( fnc ){
+				if ( typeof(fnc) == "function" ) {
+					for ( elm in this.context ) {
+						fnc.apply( this, [elm, this.context[elm]] );
+					}
+				}
+				return this;
+			},
+			'each_key': function( fnc ){
+				if ( typeof(fnc) == "function" ) {
+					for ( elm in this.context ) {
+						fnc.apply( this, [elm] );
+					}
+				}
+				return this;
+			},
+			'each_value': function( fnc ){
+				if ( typeof(fnc) == "function" ) {
+					for ( elm in this.context ) {
+						fnc.apply( this, [this.context[elm]] );
+					}
+				}
+				return this;
+			},
+			'is_empty': function(){
+				var flag = false;
+				for ( elm in this.context ) {
+					flag = true;
+				}
+				return $rb( flag );
+			},
+			'fetch': function( key ){
+				if ( typeof( this.context[key] ) != "undefined" ) {
+					return $rb( this.context[key] );
+				}
+				if ( typeof( arguments[1] ) == "undefined" ) {
+					throw "Object.fetch() : KeyError";
+				}
+				if ( typeof( arguments[1] ) != "function" ) {
+					return $rb( arguments[1] );
+				}
+				return $rb( arguments[1].apply( this, [key] ) );
+			},
+			'has_key': function( key ){
+				if ( typeof( this.context[key] ) == "undefined" ) {
+					return $rb(false);
+				}
+				return $rb(true);
+			},
+			'is_include': function( key ){
+				return this.has_key.apply( this, arguments );
+			},
+			'is_key': function( key ){
+				return this.has_key.apply( this, arguments );
+			},
+			'is_member': function( key ){
+				return this.has_key.apply( this, arguments );
+			},
+			'has_value': function( val ){
+				if ( typeof( val ) == "undefined" ) {
+					return $rb(false);
+				}
+				for ( elm in this.context ) {
+					if ( val == this.context[elm] ) {
+						return $rb(true);
+					}
+				}
+				return $rb(false);
+			},
+			'is_value': function( val ){
+				return this.has_value.apply( this, arguments );
+			},
+			'index': function( val ){
+				if ( typeof( val ) == "undefined" ) {
+					return $rb(null);
+				}
+				for ( elm in this.context ) {
+					if ( val == this.context[elm] ) {
+						return $rb(elm);
+					}
+				}
+				return $rb(null);
+			},
+			'key': function( val ){
+				return this.index.apply( this, arguments );
+			},
+			'indexes': function(){
+				var ret = $rb({});
+				if ( 0 == arguments.length ) {
+					return ret;
+				}
+				for ( elm in this.context ) {
+					for ( var i=0; i<arguments.length; i+=1 ) {
+						if ( arguments[i] == elm ) {
+							ret.store( elm, this.context[elm] );
+						}
+					}
+				}
+				return ret;
+			},
+			'indices': function(){
+				return this.indexes.apply( this, arguments );
+			},
+			'invert': function(){
+				var ret=$rb({});
+				for ( elm in this.context ) {
+					ret.store( this.context[elm], elm );
+				}
+				return ret;
+			},
+			'keys': function(){
+				var ret=$rb([]);
+				for ( elm in this.context ) {
+					ret.push( elm );
+				}
+				return ret;
+			},
+			'length': function(){
+				var cnt=0;
+				for ( elm in this.context ) {
+					cnt+=1;
+				}
+				return $rb(cnt);
+			},
+			'size': function(){
+				return this.length.apply( this, arguments );
+			},
+			'merge': function( other, fnc ){
+				var ret = $rb(this).clone();
+				other = $rb(other);
+				if ( typeof( other.to_hash ) == "function" ) {
+					other = other.to_hash();
+				}
+				other = $unrb(other);
+				for ( key in other ) {
+					if (    ( typeof(ret.context[key]) != "undefined" )
+					     && ( typeof(fnc) == "function" ) ) {
+						ret.context[key] = fnc.apply( this, [key, ret.context[key], other[key]] );
+					}
+					else {
+						ret.context[key] = other[key];
+					}
+				}
+				return ret;
+			},
+			'merge_f': function( other, fnc ){
+				other = $rb(other);
+				if ( typeof( other.to_hash ) == "function" ) {
+					other = other.to_hash();
+				}
+				other = $unrb(other);
+				for ( key in other ) {
+					if (    ( typeof(this.context[key]) != "undefined" )
+					     && ( typeof(fnc) == "function" ) ) {
+						this.context[key] = fnc.apply( this, [key, this.context[key], other[key]] );
+					}
+					else {
+						this.context[key] = other[key];
+					}
+				}
+				return this;
+			},
+			'rehash': function(){
+				// not implement
+				return this;
+			},
+			'replace': function( other ){
+				this.clear();
+				for ( key in other ) {
+					this.context[key] = other[key];
+				}
+				return this;
+			},
+			'shift': function(){
+				var ret = null;
+				for( key in this.context ){
+					ret = [ key, this.context[key] ];
+					delete this.context[key];
+					break;
+				}
+				if ( !ret ) {
+					return this.default();
+				}
+				return $rb( ret );
+			},
+			'to_hash': function(){
+				return this;
+			},
+			'update': function(){
+				return this.merge_f.apply( this, arguments );
+			},
+			'values': function(){
+				var ret = $rb([]);
+				for( key in this.context ){
+					ret.push( this.context[key] );
+				}
+				return ret;
+			},
+			'values_at': function( keys ){
+				var key_list;
+				if ( 1 < arguments.length ) {
+					key_list = $rb([]);
+					for ( var i=0;i<arguments.length;i+=1 ) {
+						key_list.push( arguments[i] );
+					}
+				}
+				else {
+					key_list = $unrb(keys);
+					if ( key_list == null ) {
+						key_list = [null];
+					}
+					else if ( typeof( key_list ) == "undefined" ) {
+						return $rb([]);
+					}
+					else if ( !$rb(key_list).is_array() ) {
+						key_list = [$unrb(key_list)];
+					}
+				}
+				key_list = $unrb(key_list);
+				var ret = $rb([]);
+				for ( var i=0;i<key_list.length;i+=1 ) {
+					if ( typeof( this.context[key_list[i]] ) != "undefined" ) {
+						ret.push( this.context[key_list[i]] );
+					}
+				}
+				if ( 0 == $unrb(ret.size()) ) {
+					return this.default();
+				}
+				return ret;
 			}
 		};
 		function RbObject(){};
 		RbObject.prototype = new Object();
-		// include enumerable to object
 		for ( var fnName in enumerableExMethods ) {
-			objectExMethods[fnName] = enumerableExMethods[fnName];
+			RbObject.prototype[fnName] = enumerableExMethods[fnName];
+			RbObject.prototype["_"+fnName] = enumerableExMethods[fnName];
 		}
 		for ( var fnName in objectExMethods ) {
 			RbObject.prototype[fnName] = objectExMethods[fnName];
+			RbObject.prototype["_"+fnName] = objectExMethods[fnName];
 		}
 		
 		
@@ -887,20 +1204,22 @@ function $rb( obj ) {
 		  Function
 		--------------------------------------*/
 		var functionExMethods = {
-			to_i: function(){ return $rb(0); },
-			to_f: function(){ return $rb(0.0); },
-			to_s: function(){ return $rb("[function]"); },
-			to_a: function(){ return $rb([ this.context ]); },
-			to_ary: function(){ return $rb(this.to_a.apply( this, arguments )); },
-			is_eql: function( other ){ return $rb(this.context == other); }
+			'to_i': function(){ return $rb(0); },
+			'to_f': function(){ return $rb(0.0); },
+			'to_s': function(){ return $rb("[function]"); },
+			'to_a': function(){ return $rb([ this.context ]); },
+			'to_ary': function(){ return $rb(this.to_a.apply( this, arguments )); },
+			'is_eql': function( other ){ return $rb(this.context == other); }
 		};
 		function RbFunction(){};
 		RbFunction.prototype = new Function();
-		for ( var fnName in objectExMethods ) {
-			RbFunction.prototype[fnName] = objectExMethods[fnName];
+		for ( var fnName in enumerableExMethods ) {
+			RbFunction.prototype[fnName] = enumerableExMethods[fnName];
+			RbFunction.prototype["_"+fnName] = enumerableExMethods[fnName];
 		}
 		for ( var fnName in functionExMethods ) {
 			RbFunction.prototype[fnName] = functionExMethods[fnName];
+			RbFunction.prototype["_"+fnName] = functionExMethods[fnName];
 		}
 		
 		
@@ -908,27 +1227,29 @@ function $rb( obj ) {
 		  Number
 		--------------------------------------*/
 		var numberExMethods = {
-			to_i: function(){
+			'to_i': function(){
 				if ( isNaN( this.context ) ) {
 					return $rb(0);
 				}
 				return $rb(parseInt( this.context ));
 			},
-			to_f: function(){ return $rb(0.0 + this.context); },
-			to_s: function(){ return $rb(this.context.toString()); },
-			to_a: function(){ return $rb([ this.context ]); },
-			to_ary: function(){ return $rb(this.to_a.apply( this, arguments )); },
-			is_eql: function( other ){ return $rb(this.context == other); },
-			valueOf: function(){ return this.context },
-			toString: function(){ return $unrb(this.to_s()) }
+			'to_f': function(){ return $rb(0.0 + this.context); },
+			'to_s': function(){ return $rb(this.context.toString()); },
+			'to_a': function(){ return $rb([ this.context ]); },
+			'to_ary': function(){ return $rb(this.to_a.apply( this, arguments )); },
+			'is_eql': function( other ){ return $rb(this.context == other); },
+			'valueOf': function(){ return this.context },
+			'toString': function(){ return $unrb(this.to_s()) }
 		};
 		function RbNumber(){};
 		RbNumber.prototype = new Number();
-		for ( var fnName in objectExMethods ) {
-			RbNumber.prototype[fnName] = objectExMethods[fnName];
+		for ( var fnName in enumerableExMethods ) {
+			RbNumber.prototype[fnName] = enumerableExMethods[fnName];
+			RbNumber.prototype["_"+fnName] = enumerableExMethods[fnName];
 		}
 		for ( var fnName in numberExMethods ) {
 			RbNumber.prototype[fnName] = numberExMethods[fnName];
+			RbNumber.prototype["_"+fnName] = numberExMethods[fnName];
 		}
 		
 		
@@ -936,7 +1257,7 @@ function $rb( obj ) {
 		  String
 		--------------------------------------*/
 		var stringExMethods = {
-			to_i: function(){
+			'to_i': function(){
 				if ( this.context.match(/^[+-]?[0-9]+\.?[0-9]*$/i) ) {
 					return $rb(parseInt( this.context ));
 				}
@@ -944,7 +1265,7 @@ function $rb( obj ) {
 					return $rb(0);
 				}
 			},
-			to_f: function(){
+			'to_f': function(){
 				if ( this.context.match(/^[+-]?[0-9]+\.?[0-9]*$/i) ) {
 					return $rb(parseFloat( this.context ));
 				}
@@ -952,19 +1273,21 @@ function $rb( obj ) {
 					return $rb(0);
 				}
 			},
-			to_s: function(){ return $rb(this.context.toString()); },
-			to_a: function(){ return $rb([ this.context ]); },
-			to_ary: function(){ return $rb(this.to_a.apply( this, arguments )); },
-			is_eql: function( other ){ return $rb(this.context == other); },
-			valueOf: function(){ return this.context }
+			'to_s': function(){ return $rb(this.context.toString()); },
+			'to_a': function(){ return $rb([ this.context ]); },
+			'to_ary': function(){ return $rb(this.to_a.apply( this, arguments )); },
+			'is_eql': function( other ){ return $rb(this.context == other); },
+			'valueOf': function(){ return this.context }
 		};
 		function RbString(){};
 		RbString.prototype = new String();
-		for ( var fnName in objectExMethods ) {
-			RbString.prototype[fnName] = objectExMethods[fnName];
+		for ( var fnName in enumerableExMethods ) {
+			RbString.prototype[fnName] = enumerableExMethods[fnName];
+			RbString.prototype["_"+fnName] = enumerableExMethods[fnName];
 		}
 		for ( var fnName in stringExMethods ) {
 			RbString.prototype[fnName] = stringExMethods[fnName];
+			RbString.prototype["_"+fnName] = stringExMethods[fnName];
 		}
 		
 		
@@ -972,37 +1295,39 @@ function $rb( obj ) {
 		  Boolean
 		--------------------------------------*/
 		var booleanExMethods = {
-			to_i: function(){
+			'to_i': function(){
 				if ( true == this.context ) {
 					return $rb(0);
 				}
 				return $rb(-1);
 			},
-			to_f: function() {
+			'to_f': function() {
 				if ( true == this.context ) {
 					return $rb(0.0);
 				}
 				return $rb(-1.0);
 			},
-			to_s: function() {
+			'to_s': function() {
 				if ( true == this.context ) {
 					return $rb("true");
 				}
 				return $rb("false");
 			},
-			to_a: function(){ return $rb([ this.context ]); },
-			to_ary: function(){ return $rb(this.to_a.apply( this, arguments )); },
-			is_eql: function( other ){ return $rb(this.context == other); },
-			valueOf: function(){ return this.context },
-			toString: function(){ return $unrb(this.to_s()) }
+			'to_a': function(){ return $rb([ this.context ]); },
+			'to_ary': function(){ return $rb(this.to_a.apply( this, arguments )); },
+			'is_eql': function( other ){ return $rb(this.context == other); },
+			'valueOf': function(){ return this.context },
+			'toString': function(){ return $unrb(this.to_s()) }
 		};
 		function RbBoolean(){};
 		RbBoolean.prototype = new Boolean();
-		for ( var fnName in objectExMethods ) {
-			RbBoolean.prototype[fnName] = objectExMethods[fnName];
+		for ( var fnName in enumerableExMethods ) {
+			RbBoolean.prototype[fnName] = enumerableExMethods[fnName];
+			RbBoolean.prototype["_"+fnName] = enumerableExMethods[fnName];
 		}
 		for ( var fnName in booleanExMethods ) {
 			RbBoolean.prototype[fnName] = booleanExMethods[fnName];
+			RbBoolean.prototype["_"+fnName] = booleanExMethods[fnName];
 		}
 		
 		
@@ -1010,9 +1335,9 @@ function $rb( obj ) {
 		  Array
 		--------------------------------------*/
 		var arrayExMethods = {
-			to_i: function(){ return $rb(0); },
-			to_f: function(){ return $rb(0.0); },
-			to_s: function(){
+			'to_i': function(){ return $rb(0); },
+			'to_f': function(){ return $rb(0.0); },
+			'to_s': function(){
 				var ref_stack;
 				if ( 0 == arguments.length ) {
 					ref_stack = new _ref_stack();
@@ -1039,10 +1364,10 @@ function $rb( obj ) {
 				}
 				return $rb("[" + retVal + "]");
 			},
-			to_a: function(){ return $rb(this.context); },
-			to_ary: function(){ return $rb(this.to_a.apply( this, arguments )); },
-			is_array: function(){ return $rb(true); },
-			is_eql: function( other ){
+			'to_a': function(){ return $rb(this.context); },
+			'to_ary': function(){ return $rb(this.to_a.apply( this, arguments )); },
+			'is_array': function(){ return $rb(true); },
+			'is_eql': function( other ){
 				var ref_stack;
 				if ( 1 == arguments.length ) {
 					if ( null != other && typeof( other ) != "undefined" && typeof( other.is_circular ) != "undefined" ) {
@@ -1077,11 +1402,43 @@ function $rb( obj ) {
 				}
 				return $rb(false);
 			},
-			add: function( ary ){
+			'to_hash': function() {
+				var ret = {};
+				var tmpKey;
+				var tmpVal;
+				for ( var i=0; i<this.context.length; i+=1 ) {
+					if ( null != this.context[i] && typeof( this.context[i] ) != "undefined" ) {
+						if ( $rb(this.context[i]).is_array().context ) {
+							
+							tmpKey = $unrb(this.context[i])[0];
+							if ( null != tmpKey && typeof( tmpKey ) != "undefined" && typeof(tmpKey) != "object" ) {
+								tmpVal = $rb(this.context[i]).dup();
+								if ( 1 >= tmpVal.context.length ) {
+									tmpVal.shift();
+									tmpVal = $unrb(tmpVal);
+									if ( 1 == tmpVal.length ) {
+										tmpVal = tmpVal[0];
+									}
+									else if ( 0 == tmpVal.length ) {
+										tmpVal = null;
+									}
+								}
+								else {
+									tmpVal = null;
+								}
+								
+								ret[tmpKey] = tmpVal;
+							}
+						}
+					}
+				}
+				return $rb(ret);
+			},
+			'add': function( ary ){
 				ary = $unrb( ary );
 				return this.copy().concat( ary );
 			},
-			sub: function( ary ){
+			'sub': function( ary ){
 				ary = $unrb( ary );
 				var retAry = this.copy().delete_if( function(elm) {
 					if ( null == ary ) {
@@ -1099,7 +1456,7 @@ function $rb( obj ) {
 				});
 				return retAry;
 			},
-			multiply: function( times ){
+			'multiply': function( times ){
 				times = $unrb( times );
 				if ( null == times ) { return $rb([]) }
 				if ( typeof( times ) != "number" ) { return $rb([]); }
@@ -1111,9 +1468,9 @@ function $rb( obj ) {
 				}
 				return retAry;
 			},
-			times: function(){ return this.multiply.apply( this, arguments ); },
-			and: function( other ){
-				other = $rb(other)
+			'times': function(){ return this.multiply.apply( this, arguments ); },
+			'and': function( other ){
+				other = $rb(other);
 				if ( null == other.context || typeof( other.context ) == "undefined" || false == other.is_array().context ) {
 					return $rb([]);
 				}
@@ -1124,14 +1481,14 @@ function $rb( obj ) {
 				});
 				return $rb(retAry);
 			},
-			or: function( other ){
-				other = $rb(other)
+			'or': function( other ){
+				other = $rb(other);
 				if ( null == other.context || typeof( other.context ) == "undefined" || false == other.is_array().context ) {
 					return $rb([]);
 				}
 				return this.uniq().concat( other.context ).uniq();
 			},
-			assoc: function( key ){
+			'assoc': function( key ){
 				key = $unrb( key );
 				var i;
 				for ( i=0; i<this.context.length; i+=1 ) {
@@ -1150,7 +1507,7 @@ function $rb( obj ) {
 				}
 				return $rb(null);
 			},
-			at: function( index ){
+			'at': function( index ){
 				index = $unrb( index );
 				if ( null == index ) { return null }
 				if ( typeof( index ) != "number" ) { return null; }
@@ -1163,11 +1520,11 @@ function $rb( obj ) {
 				}
 				return $rb(this.context[ index ]);
 			},
-			clear: function(){
+			'clear': function(){
 				this.context.splice( 0, this.context.length );
 				return this;
 			},
-			copy: function(){
+			'copy': function(){
 				var i;
 				var cpyAry = $rb(new Array());
 				for ( i = 0; i < this.context.length; i += 1 ) {
@@ -1175,16 +1532,16 @@ function $rb( obj ) {
 				}
 				return cpyAry;
 			},
-			dup: function(){ return this.copy.apply( this, arguments ); },
-			collect_f: function( yield ){
+			'dup': function(){ return this.copy.apply( this, arguments ); },
+			'collect_f': function( yield ){
 				var retAry = $rb([]);
 				for ( var i=0; i<this.context.length; i+=1 ) {
 					retAry.context[retAry.context.length] = $unrb( yield.apply( this, [this.context[i]] ) );
 				}
 				return this.replace( $unrb( retAry ) );
 			},
-			map_f: function(){ return this.collect_f.apply( this, arguments ) },
-			compact: function(){
+			'map_f': function(){ return this.collect_f.apply( this, arguments ) },
+			'compact': function(){
 				var i = 0;
 				var j = 0;
 				var retAry = $rb(new Array());
@@ -1197,7 +1554,7 @@ function $rb( obj ) {
 				}
 				return retAry;
 			},
-			compact_f: function(){
+			'compact_f': function(){
 				var i = 0;
 				while( i < this.context.length ) {
 					if ( null == this.context[i] ) {
@@ -1209,7 +1566,7 @@ function $rb( obj ) {
 				}
 				return this;
 			},
-			concat: function( ary ){
+			'concat': function( ary ){
 				ary = $unrb( ary );
 				switch( typeof( ary ) ) {
 				case "object":
@@ -1233,7 +1590,7 @@ function $rb( obj ) {
 				}
 				return this;
 			},
-			_delete: function( elm ){
+			'delete': function( elm ){
 				elm = $unrb( elm );
 				var i = 0;
 				var retVal = null;
@@ -1263,7 +1620,7 @@ function $rb( obj ) {
 				}
 				return $rb(retVal);
 			},
-			delete_at: function( index ){
+			'delete_at': function( index ){
 				index = $unrb( index );
 				if ( typeof( index ) == "undefined" ) { return null; }
 				index = $unrb($rb(index).to_i());
@@ -1276,7 +1633,7 @@ function $rb( obj ) {
 				}
 				return $rb(elm);
 			},
-			delete_if: function( yield ){
+			'delete_if': function( yield ){
 				var i = 0;
 				if ( typeof( yield ) == "function" ) {
 					while( i < this.context.length ) {
@@ -1293,7 +1650,7 @@ function $rb( obj ) {
 				}
 				return this;
 			},
-			reject_f: function( yield ){
+			'reject_f': function( yield ){
 				var i = 0;
 				var numOfDelete = 0;
 				if ( typeof( yield ) == "function" ) {
@@ -1317,23 +1674,23 @@ function $rb( obj ) {
 					return $rb(null);
 				}
 			},
-			each: function( yield ){
+			'each': function( yield ){
 				for ( var i=0;i<this.context.length;i+=1 ) {
 					yield.apply( this, [this.context[i]] );
 				}
 				return this;
 			},
-			each_index: function( yield ){
+			'each_index': function( yield ){
 				var i;
 				for ( i=0;i<this.context.length;i+=1 ) {
 					yield.apply( this, [i] );
 				}
 				return this;
 			},
-			is_empty: function(){
+			'is_empty': function(){
 				return $rb( 0 == this.context.length );
 			},
-			is_exist: function( obj ){
+			'is_exist': function( obj ){
 				obj = $unrb( obj );
 				for ( var i=0;i<this.context.length;i+=1 ) {
 					if ( null == this.context[i] ) {
@@ -1350,8 +1707,8 @@ function $rb( obj ) {
 				}
 				return $rb( false );
 			},
-			is_include: function(){ return $rb( this.is_exist.apply( this, arguments ) ); },
-			fetch: function(){
+			'is_include': function(){ return $rb( this.is_exist.apply( this, arguments ) ); },
+			'fetch': function(){
 				if ( 0 == arguments.length ) {
 					return $rb(null);
 				}
@@ -1391,7 +1748,7 @@ function $rb( obj ) {
 				}
 				return $rb( this.context[index] );
 			},
-			fill: function(){
+			'fill': function(){
 				if ( 0 == arguments.length ) {
 					return this;
 				}
@@ -1422,7 +1779,7 @@ function $rb( obj ) {
 				}
 				return this;
 			},
-			first: function(){
+			'first': function(){
 				var retVal = null;
 				var elmLength = 0;
 				if ( 0 == this.context.length ) {
@@ -1449,7 +1806,7 @@ function $rb( obj ) {
 				}
 				return $rb(retVal);
 			},
-			flatten: function(){
+			'flatten': function(){
 				var ref_stack;
 				if ( 0 == arguments.length ) {
 					ref_stack = new _ref_stack();
@@ -1473,10 +1830,10 @@ function $rb( obj ) {
 				}
 				return retAry;
 			},
-			flatten_f: function(){
+			'flatten_f': function(){
 				return this.replace( this.flatten().context );
 			},
-			index: function( aryOrFnc ){
+			'index': function( aryOrFnc ){
 				aryOrFnc = $unrb( aryOrFnc );
 				for ( var i=0;i<this.context.length;i+=1 ) {
 					if ( null != aryOrFnc && typeof( aryOrFnc ) == "function" ) {
@@ -1500,7 +1857,7 @@ function $rb( obj ) {
 				}
 				return $rb(null);
 			},
-			insert: function(){
+			'insert': function(){
 				if ( 1 >= arguments.length ) {
 					return this;
 				}
@@ -1532,7 +1889,7 @@ function $rb( obj ) {
 				}
 				return this;
 			},
-			join: function( sep ){
+			'join': function( sep ){
 				sep = $unrb( sep );
 				var ref_stack = null;
 				if ( 0 == arguments.length ) {
@@ -1579,7 +1936,7 @@ function $rb( obj ) {
 				}
 				return $rb(retVal);
 			},
-			last: function(){
+			'last': function(){
 				var retVal = null;
 				var elmLength = 0;
 				if ( 0 == this.context.length ) {
@@ -1606,10 +1963,10 @@ function $rb( obj ) {
 				}
 				return $rb(retVal);
 			},
-			size: function(){
+			'size': function(){
 				return $rb(this.context.length);
 			},
-			nitems: function(){
+			'nitems': function(){
 				var nullCnt = 0;
 				for ( var i=0;i<this.context.length;i+=1 ) {
 					if ( null == this.context[i] ) {
@@ -1618,11 +1975,11 @@ function $rb( obj ) {
 				}
 				return $rb(this.context.length - nullCnt);
 			},
-			pack: function(){
+			'pack': function(){
 				// Array.pack() is not implementation.
 				return $rb(null);
 			},
-			pop: function(){
+			'pop': function(){
 				if ( 0 == this.context.length ) {
 					return $rb(null);
 				}
@@ -1630,15 +1987,15 @@ function $rb( obj ) {
 				this.context.splice( this.context.length-1, 1 );
 				return $rb(elm);
 			},
-			push: function(){
+			'push': function(){
 				if ( 0 == arguments.length ) { return this; }
 				var i;
 				for ( i=0; i<arguments.length; i+=1 ) {
-					this.context[this.context.length] = arguments[i]
+					this.context[this.context.length] = arguments[i];
 				}
 				return this;
 			},
-			rassoc: function( key ){
+			'rassoc': function( key ){
 				key = $unrb( key );
 				var i;
 				for ( i=0; i<this.context.length; i+=1 ) {
@@ -1659,7 +2016,7 @@ function $rb( obj ) {
 				}
 				return $rb(null);
 			},
-			replace: function( another ){
+			'replace': function( another ){
 				another = $unrb( another );
 				this.clear();
 				if ( null == another || typeof( another ) == "undefined" ) {
@@ -1675,7 +2032,7 @@ function $rb( obj ) {
 				}
 				return this;
 			},
-			reverse: function(){
+			'reverse': function(){
 				if ( 0 == this.context.length ) {
 					return $rb([]);
 				}
@@ -1686,7 +2043,7 @@ function $rb( obj ) {
 				}
 				return tmpVal;
 			},
-			reverse_f: function(){
+			'reverse_f': function(){
 				if ( 0 == this.context.length ) {
 					return this;
 				}
@@ -1696,13 +2053,13 @@ function $rb( obj ) {
 				}
 				return this;
 			},
-			reverse_each: function( yield ){
+			'reverse_each': function( yield ){
 				for ( var i=this.context.length-1; i>=0; i-=1 ) {
 					yield.apply( this, [this.context[i]] );
 				}
 				return this;
 			},
-			rindex: function( aryOrFnc ){
+			'rindex': function( aryOrFnc ){
 				aryOrFnc = $unrb( aryOrFnc );
 				for ( var i=this.context.length-1;i>=0;i-=1 ) {
 					if ( null != aryOrFnc && typeof( aryOrFnc ) == "function" ) {
@@ -1726,7 +2083,7 @@ function $rb( obj ) {
 				}
 				return $rb(null);
 			},
-			shift: function(){
+			'shift': function(){
 				if ( 0 == this.context.length ) {
 					return $rb(null);
 				}
@@ -1734,7 +2091,7 @@ function $rb( obj ) {
 				this.context.splice( 0, 1 );
 				return $rb(elm);
 			},
-			slice: function(){
+			'slice': function(){
 				if ( 0 == arguments.length ) {
 					retVal = this.copy();
 					return retVal;
@@ -1778,7 +2135,7 @@ function $rb( obj ) {
 				}
 				return $rb([]);
 			},
-			slice_f: function(){
+			'slice_f': function(){
 				var retVal;
 				if ( 0 == arguments.length ) {
 					retVal = this.copy();
@@ -1828,7 +2185,7 @@ function $rb( obj ) {
 				}
 				return $rb([]);
 			},
-			sort: function(){
+			'sort': function(){
 				var retVal = $rb([]);
 				var existFnc = false;
 				if ( 1 == arguments.length ) {
@@ -1915,7 +2272,7 @@ function $rb( obj ) {
 								case 3: // string
 									var strMax = org.length;
 									if ( strMax > cmp.length ) {
-										strMax = cmp.length
+										strMax = cmp.length;
 									}
 									for ( var k=0;k<strMax;k+=1 ) {
 										evalVal = cmp.charCodeAt(k) - org.charCodeAt(k);
@@ -1950,7 +2307,7 @@ function $rb( obj ) {
 				}
 				return retVal;
 			},
-			sort_f: function(){
+			'sort_f': function(){
 				var retVal;
 				if ( 1 == arguments.length ) {
 					retVal = this.sort( arguments[0] );
@@ -1960,7 +2317,7 @@ function $rb( obj ) {
 				}
 				return this.replace( retVal.context );
 			},
-			transpose: function(){
+			'transpose': function(){
 				if ( 0 == this.context.length ) {
 					return $rb([]);
 				}
@@ -1989,7 +2346,7 @@ function $rb( obj ) {
 				}
 				return retAry;
 			},
-			uniq: function(){
+			'uniq': function(){
 				var retAry = [];
 				var uniqFlag;
 				for ( var i=0;i<this.context.length;i+=1 ) {
@@ -2020,11 +2377,11 @@ function $rb( obj ) {
 				}
 				return $rb(retAry);
 			},
-			uniq_f: function(){
+			'uniq_f': function(){
 				var retAry = this.uniq();
 				return this.replace( retAry.context );
 			},
-			unshift: function(){
+			'unshift': function(){
 				if ( 0 == arguments.length ) { return this; }
 				var cpyAry = this.copy();
 				this.clear();
@@ -2035,7 +2392,7 @@ function $rb( obj ) {
 				this.concat( cpyAry.context );
 				return this;
 			},
-			values_at: function(){
+			'values_at': function(){
 				if ( 0 == arguments.length ) { return $rb([]); }
 				retAry = $rb([]);
 				for ( var i=0;i<arguments.length;i+=1 ) {
@@ -2060,11 +2417,13 @@ function $rb( obj ) {
 		};
 		function RbArray(){};
 		RbArray.prototype = new Array();
-		for ( var fnName in objectExMethods ) {
-			RbArray.prototype[fnName] = objectExMethods[fnName];
+		for ( var fnName in enumerableExMethods ) {
+			RbArray.prototype[fnName] = enumerableExMethods[fnName];
+			RbArray.prototype["_"+fnName] = enumerableExMethods[fnName];
 		}
 		for ( var fnName in arrayExMethods ) {
 			RbArray.prototype[fnName] = arrayExMethods[fnName];
+			RbArray.prototype["_"+fnName] = arrayExMethods[fnName];
 		}
 		
 		
@@ -2090,7 +2449,7 @@ function $rb( obj ) {
 				this.stack[this.stack.length] = obj;
 			}
 			return false;
-		}
+		};
 		
 		
 		/*--------------------------------------
